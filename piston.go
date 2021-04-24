@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"sort"
-	"strings"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -19,7 +18,7 @@ var (
 	ResultUnknown  = "unknown"
 )
 
-func GetLanguages() (output string) {
+func GetLanguages() ([]string, error) {
 	resp, err := http.Get("https://emkc.org/api/v2/piston/runtimes")
 	if err != nil {
 		if resp.Body != nil {
@@ -28,7 +27,7 @@ func GetLanguages() (output string) {
 			log.Printf("%s\n", body)
 		}
 		log.Println(err)
-		return
+		return nil, err
 	}
 	var languagesMap []struct {
 		Language string
@@ -38,7 +37,7 @@ func GetLanguages() (output string) {
 	if err != nil {
 		log.Println(body)
 		log.Println(err)
-		return
+		return nil, err
 	}
 	json.Unmarshal(body, &languagesMap)
 	languageSet := make(map[string]struct{})
@@ -50,8 +49,7 @@ func GetLanguages() (output string) {
 		languages = append(languages, lang)
 	}
 	sort.Strings(languages)
-	output = strings.Join(languages, "\n")
-	return
+	return languages, nil
 }
 
 func RunCode(update *tgbot.Update, text string) (result string, source string, output string) {

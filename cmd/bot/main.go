@@ -5,6 +5,7 @@ import (
 	"html"
 	"log"
 	"os"
+	"strings"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 
@@ -19,7 +20,7 @@ var USAGE_MSG = `
 [your code]
 ...
 </pre>
-type /lang for list of supported languages.
+type /langs for list of supported languages.
 `
 
 var OUTPUT_MSG = `
@@ -118,7 +119,12 @@ func main() {
 				}
 
 			case "langs":
-				msg.Text = piston.GetLanguages()
+				languages, err := piston.GetLanguages()
+				if err != nil {
+					msg.Text = ERROR_STRING
+					break
+				}
+				msg.Text = fmt.Sprintf("Supported languages:%s", strings.Join(languages, "\n"))
 			}
 			bot.Send(msg)
 		}
