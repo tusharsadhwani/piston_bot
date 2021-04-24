@@ -2,6 +2,8 @@
 
 A Python bot that will run code for you.
 
+Available as [@iruncode_bot](https://t.me/iruncode_bot) on telegram.
+
 ## Example
 
 - Input:
