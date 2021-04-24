@@ -21,6 +21,14 @@ var USAGE_MSG = `
 type /langs for list of supported languages.
 `
 
+var INLINE_USAGE_MSG = `
+<b>Inline usage:</b>
+<pre>@iruncode_bot [language]
+[your code]
+...
+</pre>
+`
+
 var OUTPUT_MSG = `
 <b>Language:</b>
 <pre>%s</pre>
@@ -72,7 +80,7 @@ func main() {
 				var formattedText string
 				switch response.Result {
 				case piston.ResultBadQuery:
-					formattedText = USAGE_MSG
+					formattedText = INLINE_USAGE_MSG
 				case piston.ResultUnknown:
 					formattedText = ERROR_STRING
 				case piston.ResultError:
