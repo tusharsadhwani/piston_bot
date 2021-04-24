@@ -3,7 +3,7 @@ package piston_bot
 import (
 	"bytes"
 	"encoding/json"
-	"io"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"sort"
@@ -22,7 +22,7 @@ func GetLanguages() ([]string, error) {
 	resp, err := http.Get("https://emkc.org/api/v2/piston/runtimes")
 	if err != nil {
 		if resp.Body != nil {
-			body, err := io.ReadAll(resp.Body)
+			body, err := ioutil.ReadAll(resp.Body)
 			log.Println(err)
 			log.Printf("%s\n", body)
 		}
@@ -33,7 +33,7 @@ func GetLanguages() ([]string, error) {
 		Language string
 		Version  string
 	}
-	body, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(body)
 		log.Println(err)
@@ -91,14 +91,14 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 	if err != nil {
 		result = ResultUnknown
 		if resp.Body != nil {
-			body, err := io.ReadAll(resp.Body)
+			body, err := ioutil.ReadAll(resp.Body)
 			log.Println(err)
 			log.Printf("%s\n", body)
 		}
 		log.Println(err)
 		return
 	}
-	body, err := io.ReadAll(resp.Body)
+	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		result = ResultUnknown
 		log.Println(err)
