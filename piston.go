@@ -19,7 +19,11 @@ var (
 	ResultUnknown  = "unknown"
 )
 
-var authHeader = []string{os.Getenv("AUTH")}
+var authHeader []string
+
+func Init() {
+	authHeader = []string{os.Getenv("AUTH")}
+}
 
 func GetLanguages() ([]string, error) {
 	resp, err := http.Get("https://emkc.org/api/v2/piston/runtimes")

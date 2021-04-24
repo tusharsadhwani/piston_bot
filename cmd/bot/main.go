@@ -40,6 +40,8 @@ var ERROR_MSG = `
 var ERROR_STRING = "Some error occured, try again later."
 
 func main() {
+	piston.Init()
+
 	bot, err := tgbot.NewBotAPI(os.Getenv("TOKEN"))
 	if err != nil {
 		log.Panic(err)
