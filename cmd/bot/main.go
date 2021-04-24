@@ -62,7 +62,6 @@ func main() {
 	for update := range updates {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
-				fmt.Println(update.InlineQuery.Query)
 				result, code, text := piston.RunCode(&update, update.InlineQuery.Query)
 				var formattedText string
 				switch result {
