@@ -123,10 +123,12 @@ func main() {
 					msg.Text = ERROR_STRING
 					break
 				}
-				msg.Text = fmt.Sprintf(
-					"<b>Supported languages:</b>\n<pre>%s</pre>",
-					strings.Join(languages, "</pre>\n<pre>"),
-				)
+				textLines := make([]string, len(languages)+1)
+				textLines = append(textLines, "<b>Supported languages:</b>")
+				for _, lang := range languages {
+					textLines = append(textLines, fmt.Sprintf("<pre>%s</pre>", html.EscapeString(lang)))
+				}
+				msg.Text = strings.Join(textLines, "\n")
 			}
 			bot.Send(msg)
 		}
