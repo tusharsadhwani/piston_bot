@@ -50,7 +50,7 @@ func GetLanguages() (output string) {
 	return
 }
 
-func RunCode(update *tgbot.Update, text string) (result string, output string) {
+func RunCode(update *tgbot.Update, text string) (result string, source string, output string) {
 	if len(text) == 0 {
 		result = ResultBadQuery
 		output = "Bad Query"
@@ -114,12 +114,14 @@ func RunCode(update *tgbot.Update, text string) (result string, output string) {
 			return
 		}
 		result = ResultError
+		source = code
 		output = errorStruct.Message
 		return
 	}
 	var data struct{ Run struct{ Output string } }
 	json.Unmarshal(body, &data)
 	result = ResultSuccess
+	source = code
 	output = data.Run.Output
 	return
 }

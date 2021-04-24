@@ -13,6 +13,31 @@ import (
 	piston "github.com/tusharsadhwani/piston_bot"
 )
 
+var USAGE_MSG = `
+<b>Usage:</b>
+<pre>/run [language]
+[your code]
+...
+</pre>
+type /lang for list of supported languages.
+`
+
+var OUTPUT_MSG = `
+<b>Code:</b>
+<pre>%s</pre>
+
+<b>Output:</b>
+<pre>%s</pre>
+`
+
+var ERROR_MSG = `
+<b>Code:</b>
+<pre>%s</pre>
+
+<b>Error:</b>
+<pre>%s</pre>
+`
+
 func main() {
 	bot, err := tgbot.NewBotAPI(os.Getenv("TOKEN"))
 	if err != nil {
@@ -35,7 +60,7 @@ func main() {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
 				fmt.Println(update.InlineQuery.Query)
-				result, text := piston.RunCode(&update, update.InlineQuery.Query)
+				result, code, text := piston.RunCode(&update, update.InlineQuery.Query)
 				var formattedText string
 				switch result {
 				case piston.ResultBadQuery:
@@ -43,9 +68,9 @@ func main() {
 				case piston.ResultUnknown:
 					formattedText = text
 				case piston.ResultError:
-					formattedText = fmt.Sprintf(ERROR_MSG, html.EscapeString(text))
+					formattedText = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
 				case piston.ResultSuccess:
-					formattedText = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(text))
+					formattedText = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(code), html.EscapeString(text))
 				}
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
@@ -78,16 +103,16 @@ func main() {
 				msg.Text = USAGE_MSG
 
 			case "run":
-				result, text := piston.RunCode(&update, update.Message.CommandArguments())
+				result, code, text := piston.RunCode(&update, update.Message.CommandArguments())
 				switch result {
 				case piston.ResultBadQuery:
 					msg.Text = USAGE_MSG
 				case piston.ResultUnknown:
 					msg.Text = text
 				case piston.ResultError:
-					msg.Text = fmt.Sprintf(ERROR_MSG, html.EscapeString(text))
+					msg.Text = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
 				case piston.ResultSuccess:
-					msg.Text = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(text))
+					msg.Text = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(code), html.EscapeString(text))
 				}
 
 			case "lang":
@@ -97,22 +122,3 @@ func main() {
 		}
 	}
 }
-
-var USAGE_MSG = `
-<b>Usage:</b>
-<pre>/run [language]
-[your code]
-...
-</pre>
-type /lang for list of supported languages.
-`
-
-var OUTPUT_MSG = `
-<b>Output:</b>
-<pre>%s</pre>
-`
-
-var ERROR_MSG = `
-<b>Error:</b>
-<pre>%s</pre>
-`
