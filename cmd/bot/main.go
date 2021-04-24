@@ -124,7 +124,10 @@ func main() {
 					msg.Text = ERROR_STRING
 					break
 				}
-				msg.Text = fmt.Sprintf("Supported languages:%s", strings.Join(languages, "\n"))
+				msg.Text = fmt.Sprintf(
+					"<b>Supported languages:</b>\n<pre>%s</pre>",
+					strings.Join(languages, "</pre>\n<pre>"),
+				)
 			}
 			bot.Send(msg)
 		}
