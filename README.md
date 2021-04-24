@@ -1,6 +1,6 @@
 # piston_bot
 
-A Python bot that will run code for you.
+A Python bot that will run code for you. Made using [piston][1].
 
 Available as [@iruncode_bot](https://t.me/iruncode_bot) on telegram.
 
@@ -54,3 +54,5 @@ You'll need [go](https://golang.org) installed.
   export TOKEN=<the bot token>
   ./bot # this runs the bot
   ```
+
+[1]: https://github.com/engineer-man/piston
