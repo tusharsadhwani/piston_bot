@@ -22,6 +22,9 @@ type /langs for list of supported languages.
 `
 
 var OUTPUT_MSG = `
+<b>Language:</b>
+<pre>%s</pre>
+
 <b>Code:</b>
 <pre>%s</pre>
 
@@ -30,6 +33,9 @@ var OUTPUT_MSG = `
 `
 
 var ERROR_MSG = `
+<b>Language:</b>
+<pre>%s</pre>
+
 <b>Code:</b>
 <pre>%s</pre>
 
@@ -62,17 +68,27 @@ func main() {
 	for update := range updates {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
-				result, code, text := piston.RunCode(&update, update.InlineQuery.Query)
+				response := piston.RunCode(&update, update.InlineQuery.Query)
 				var formattedText string
-				switch result {
+				switch response.Result {
 				case piston.ResultBadQuery:
 					formattedText = USAGE_MSG
 				case piston.ResultUnknown:
 					formattedText = ERROR_STRING
 				case piston.ResultError:
-					formattedText = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
+					formattedText = fmt.Sprintf(
+						ERROR_MSG,
+						html.EscapeString(response.Language),
+						html.EscapeString(response.Code),
+						html.EscapeString(response.Output),
+					)
 				case piston.ResultSuccess:
-					formattedText = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(code), html.EscapeString(text))
+					formattedText = fmt.Sprintf(
+						OUTPUT_MSG,
+						html.EscapeString(response.Language),
+						html.EscapeString(response.Code),
+						html.EscapeString(response.Output),
+					)
 				}
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
@@ -81,7 +97,7 @@ func main() {
 							Type:        "article",
 							ID:          uuid.NewString(),
 							Title:       "Output",
-							Description: text,
+							Description: response.Output,
 							InputMessageContent: tgbot.InputTextMessageContent{
 								Text:      formattedText,
 								ParseMode: "html",
@@ -106,16 +122,26 @@ func main() {
 				msg.Text = USAGE_MSG
 
 			case "run":
-				result, code, text := piston.RunCode(&update, update.Message.CommandArguments())
-				switch result {
+				response := piston.RunCode(&update, update.Message.CommandArguments())
+				switch response.Result {
 				case piston.ResultBadQuery:
 					msg.Text = USAGE_MSG
 				case piston.ResultUnknown:
 					msg.Text = ERROR_STRING
 				case piston.ResultError:
-					msg.Text = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
+					msg.Text = fmt.Sprintf(
+						ERROR_MSG,
+						html.EscapeString(response.Language),
+						html.EscapeString(response.Code),
+						html.EscapeString(response.Output),
+					)
 				case piston.ResultSuccess:
-					msg.Text = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(code), html.EscapeString(text))
+					msg.Text = fmt.Sprintf(
+						OUTPUT_MSG,
+						html.EscapeString(response.Language),
+						html.EscapeString(response.Code),
+						html.EscapeString(response.Output),
+					)
 				}
 
 			case "langs":

@@ -59,13 +59,14 @@ func GetLanguages() ([]string, error) {
 	return languages, nil
 }
 
-func RunCode(update *tgbot.Update, text string) (result string, source string, output string) {
-	if len(text) == 0 {
-		result = ResultBadQuery
-		output = "Bad Query"
-		return
-	}
+type RunResponse struct {
+	Result   string
+	Language string
+	Code     string
+	Output   string
+}
 
+func RunCode(update *tgbot.Update, text string) RunResponse {
 	var lang, code string
 	for index, char := range text {
 		if char == ' ' || char == '\n' {
@@ -74,9 +75,10 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 		}
 	}
 	if code == "" {
-		result = ResultBadQuery
-		output = "Bad Query"
-		return
+		return RunResponse{
+			Result: ResultBadQuery,
+			Output: "Bad Query",
+		}
 	}
 
 	jsonBody, err := json.Marshal(map[string]string{
@@ -85,9 +87,10 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 		"files":    code,
 	})
 	if err != nil {
-		result = ResultUnknown
 		log.Println(err)
-		return
+		return RunResponse{
+			Result: ResultUnknown,
+		}
 	}
 
 	req, err := http.NewRequest(
@@ -96,50 +99,59 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 		bytes.NewReader(jsonBody),
 	)
 	if err != nil {
-		result = ResultUnknown
 		log.Println(err)
-		return
+		return RunResponse{
+			Result: ResultUnknown,
+		}
 	}
 	req.Header = http.Header{
 		"Authorization": authHeader,
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		result = ResultUnknown
 		if resp.Body != nil {
 			body, err := ioutil.ReadAll(resp.Body)
 			log.Println(err)
 			log.Printf("%s\n", body)
 		}
 		log.Println(err)
-		return
+		return RunResponse{
+			Result: ResultUnknown,
+		}
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		result = ResultUnknown
 		log.Println(err)
 		log.Printf("%s\n", body)
-		return
+		return RunResponse{
+			Result: ResultUnknown,
+		}
 	}
 	if resp.StatusCode != 200 {
 		var errorStruct struct{ Message string }
 		json.Unmarshal(body, &errorStruct)
 		if errorStruct.Message == "" {
-			result = ResultUnknown
-
 			log.Println(err)
 			log.Printf("%s\n", body)
-			return
+			return RunResponse{
+				Result: ResultUnknown,
+			}
 		}
-		result = ResultError
-		source = code
-		output = errorStruct.Message
-		return
+
+		return RunResponse{
+			Result:   ResultError,
+			Language: lang,
+			Code:     code,
+			Output:   errorStruct.Message,
+		}
 	}
+
 	var data struct{ Run struct{ Output string } }
 	json.Unmarshal(body, &data)
-	result = ResultSuccess
-	source = code
-	output = data.Run.Output
-	return
+	return RunResponse{
+		Result:   ResultError,
+		Language: lang,
+		Code:     code,
+		Output:   data.Run.Output,
+	}
 }
