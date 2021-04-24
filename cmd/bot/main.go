@@ -38,6 +38,8 @@ var ERROR_MSG = `
 <pre>%s</pre>
 `
 
+var ERROR_STRING = "Some error occured, try again later."
+
 func main() {
 	bot, err := tgbot.NewBotAPI(os.Getenv("TOKEN"))
 	if err != nil {
@@ -66,7 +68,7 @@ func main() {
 				case piston.ResultBadQuery:
 					formattedText = USAGE_MSG
 				case piston.ResultUnknown:
-					formattedText = text
+					formattedText = ERROR_STRING
 				case piston.ResultError:
 					formattedText = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
 				case piston.ResultSuccess:
@@ -108,7 +110,7 @@ func main() {
 				case piston.ResultBadQuery:
 					msg.Text = USAGE_MSG
 				case piston.ResultUnknown:
-					msg.Text = text
+					msg.Text = ERROR_STRING
 				case piston.ResultError:
 					msg.Text = fmt.Sprintf(ERROR_MSG, html.EscapeString(code), html.EscapeString(text))
 				case piston.ResultSuccess:

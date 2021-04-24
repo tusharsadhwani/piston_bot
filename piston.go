@@ -22,7 +22,11 @@ var (
 func GetLanguages() (output string) {
 	resp, err := http.Get("https://emkc.org/api/v2/piston/runtimes")
 	if err != nil {
-		output = "some error occured, try again later."
+		if resp.Body != nil {
+			body, err := io.ReadAll(resp.Body)
+			log.Println(err)
+			log.Printf("%s\n", body)
+		}
 		log.Println(err)
 		return
 	}
@@ -32,7 +36,7 @@ func GetLanguages() (output string) {
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		output = "some error occured, try again later."
+		log.Println(body)
 		log.Println(err)
 		return
 	}
@@ -77,7 +81,6 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 	})
 	if err != nil {
 		result = ResultUnknown
-		output = "some error occured, try again later."
 		log.Println(err)
 		return
 	}
@@ -89,16 +92,17 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 	)
 	if err != nil {
 		result = ResultUnknown
-		output = "some error occured, try again later."
-		body, err := io.ReadAll(resp.Body)
+		if resp.Body != nil {
+			body, err := io.ReadAll(resp.Body)
+			log.Println(err)
+			log.Printf("%s\n", body)
+		}
 		log.Println(err)
-		log.Printf("%s\n", body)
 		return
 	}
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		result = ResultUnknown
-		output = "some error occured, try again later."
 		log.Println(err)
 		log.Printf("%s\n", body)
 		return
@@ -108,7 +112,7 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 		json.Unmarshal(body, &errorStruct)
 		if errorStruct.Message == "" {
 			result = ResultUnknown
-			output = "some error occured, try again later."
+
 			log.Println(err)
 			log.Printf("%s\n", body)
 			return
