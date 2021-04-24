@@ -97,6 +97,7 @@ func main() {
 		if update.Message.IsCommand() {
 			msg := tgbot.NewMessage(update.Message.Chat.ID, "")
 			msg.ParseMode = "html"
+			msg.ReplyToMessageID = update.Message.MessageID
 
 			switch update.Message.Command() {
 			case "help":
