@@ -117,7 +117,7 @@ func main() {
 					msg.Text = fmt.Sprintf(OUTPUT_MSG, html.EscapeString(code), html.EscapeString(text))
 				}
 
-			case "lang":
+			case "langs":
 				msg.Text = piston.GetLanguages()
 			}
 			bot.Send(msg)
