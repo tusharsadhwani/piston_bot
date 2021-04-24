@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 	"sort"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -17,6 +18,8 @@ var (
 	ResultBadQuery = "badquery"
 	ResultUnknown  = "unknown"
 )
+
+var authHeader = []string{os.Getenv("AUTH")}
 
 func GetLanguages() ([]string, error) {
 	resp, err := http.Get("https://emkc.org/api/v2/piston/runtimes")
@@ -83,11 +86,20 @@ func RunCode(update *tgbot.Update, text string) (result string, source string, o
 		return
 	}
 
-	resp, err := http.Post(
+	req, err := http.NewRequest(
+		http.MethodPost,
 		"https://emkc.org/api/v2/piston/execute",
-		"application/json",
 		bytes.NewReader(jsonBody),
 	)
+	if err != nil {
+		result = ResultUnknown
+		log.Println(err)
+		return
+	}
+	req.Header = http.Header{
+		"Authorization": authHeader,
+	}
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		result = ResultUnknown
 		if resp.Body != nil {
