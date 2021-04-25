@@ -3,10 +3,12 @@ package piston_bot
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"regexp"
 	"sort"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
@@ -63,8 +65,11 @@ type RunResponse struct {
 	Result   string
 	Language string
 	Code     string
+	Stdin    string
 	Output   string
 }
+
+var stdinRegex = regexp.MustCompile(`\s\/stdin\b`)
 
 func RunCode(update *tgbot.Update, text string) RunResponse {
 	var lang, code string
@@ -81,10 +86,19 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 		}
 	}
 
+	var stdin string
+	stdinLoc := stdinRegex.FindStringIndex(code)
+	fmt.Println(stdinLoc)
+	if stdinLoc != nil {
+		start, end := stdinLoc[0], stdinLoc[1]
+		code, stdin = code[:start], code[end+1:]
+	}
+
 	jsonBody, err := json.Marshal(map[string]string{
 		"language": lang,
 		"version":  "",
 		"files":    code,
+		"stdin":    stdin,
 	})
 	if err != nil {
 		log.Println(err)
@@ -142,6 +156,7 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 			Result:   ResultError,
 			Language: lang,
 			Code:     code,
+			Stdin:    stdin,
 			Output:   errorStruct.Message,
 		}
 	}
@@ -152,6 +167,7 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 		Result:   ResultSuccess,
 		Language: lang,
 		Code:     code,
+		Stdin:    stdin,
 		Output:   data.Run.Output,
 	}
 }
