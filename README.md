@@ -89,4 +89,14 @@ You'll need [go](https://golang.org) installed.
   ./bot         # starts the bot
   ```
 
+## Contribution
+
+Contributions are welcome!
+You're free to create a Pull Request for potential improvements to the bot.
+
+Possible contributions:
+
+- Automated API Tests
+- Documentation, Code comments, Code cleanup, etc.
+
 [1]: https://github.com/engineer-man/piston
