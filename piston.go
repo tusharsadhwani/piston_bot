@@ -9,6 +9,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -84,6 +85,8 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 			Output: "Bad Query",
 		}
 	}
+
+	code = strings.TrimLeft(code, " \n")
 
 	var stdin string
 	stdinLoc := stdinRegex.FindStringIndex(code)
