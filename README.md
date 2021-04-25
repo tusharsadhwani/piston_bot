@@ -4,42 +4,76 @@ A Telegram bot that will run code for you. Made using [piston][1].
 
 Available as [@iruncode_bot](https://t.me/iruncode_bot) on telegram.
 
-## Example
+## Examples
+
+### Basic example
 
 - Input:
 
-```python
-/run py
-print('bruh')
-for i in range(10):
-    print(i)
-```
+  ```python
+  /run python3
+  print('Hi')
+  for i in range(5):
+      print(i)
+  ```
 
 - Response:
 
-**Code:**
+  **Language:**
 
-```console
-print('bruh')
-for i in range(10):
-    print(i)
-```
+  ```console
+  python3
+  ```
 
-**Output:**
+  **Code:**
 
-```console
-bruh
-0
-1
-2
-3
-4
-5
-6
-7
-8
-9
-```
+  ```console
+  print('Hi')
+  for i in range(10):
+      print(i)
+  ```
+
+  **Output:**
+
+  ```console
+  Hi
+  0
+  1
+  2
+  3
+  4
+  ```
+
+### With user input
+
+- Input:
+
+  ```python
+  /run py
+  print(input())
+  /stdin
+  Hello
+  ```
+
+- Response:
+
+  **Language:**
+
+  ```console
+  py
+  ```
+
+  **Code:**
+
+  ```console
+  print(input())
+  ```
+
+  **Output:**
+
+  ```console
+  Hello
+  ```
 
 ## Deploy your own
 
@@ -51,8 +85,8 @@ You'll need [go](https://golang.org) installed.
   ```bash
   go build ./cmd/bot
 
-  export TOKEN=<the bot token>
-  ./bot # this runs the bot
+  export TOKEN=<your telegram bot token>
+  ./bot         # starts the bot
   ```
 
 [1]: https://github.com/engineer-man/piston
