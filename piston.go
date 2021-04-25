@@ -15,12 +15,6 @@ import (
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-var (
-	ResultSuccess = "success"
-	ResultError   = "error"
-	ResultUnknown = "unknown"
-)
-
 var authHeader []string
 
 func Init() {
@@ -80,7 +74,7 @@ func CreateRequest(text string) (RunRequest, error) {
 		}
 	}
 	if code == "" {
-		return RunRequest{}, errors.New("Bad Query")
+		return RunRequest{}, errors.New("bad query")
 	}
 
 	code = strings.TrimLeft(code, " \n")
@@ -105,6 +99,12 @@ type RunResponse struct {
 	Result string
 	Output string
 }
+
+var (
+	ResultSuccess = "success"
+	ResultError   = "error"
+	ResultUnknown = "unknown"
+)
 
 var stdinRegex = regexp.MustCompile(`\s\/stdin\b`)
 
@@ -144,41 +144,36 @@ func RunCode(update *tgbot.Update, request RunRequest) RunResponse {
 			log.Printf("%s\n", body)
 		}
 		log.Println(err)
-		return RunResponse{
-			Result: ResultUnknown,
-		}
+		return RunResponse{Result: ResultUnknown}
 	}
+
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		log.Println(err)
 		log.Printf("%s\n", body)
-		return RunResponse{
-			Result: ResultUnknown,
-		}
+		return RunResponse{Result: ResultUnknown}
 	}
 	if resp.StatusCode != 200 {
 		var errorStruct struct{ Message string }
 		json.Unmarshal(body, &errorStruct)
+
 		if errorStruct.Message == "" {
 			log.Println(err)
 			log.Printf("%s\n", body)
-			return RunResponse{
-				Result: ResultUnknown,
-			}
+			return RunResponse{Result: ResultUnknown}
 		}
 
 		return RunResponse{
 			Result: ResultError,
-
 			Output: errorStruct.Message,
 		}
 	}
 
 	var data struct{ Run struct{ Output string } }
 	json.Unmarshal(body, &data)
+
 	return RunResponse{
 		Result: ResultSuccess,
-
 		Output: data.Run.Output,
 	}
 }
