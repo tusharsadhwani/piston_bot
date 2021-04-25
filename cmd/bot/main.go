@@ -17,7 +17,9 @@ var USAGE_MSG = `
 <pre>/run [language]
 [your code]
 ...
-</pre>
+/stdin [input text] (optional)
+...</pre>
+
 type /langs for list of supported languages.
 `
 
@@ -26,7 +28,8 @@ var INLINE_USAGE_MSG = `
 <pre>@iruncode_bot [language]
 [your code]
 ...
-</pre>
+/stdin [input text] (optional)
+...</pre>
 `
 
 var ERROR_STRING = `
