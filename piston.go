@@ -36,6 +36,7 @@ func GetLanguages() ([]string, error) {
 		log.Println(err)
 		return nil, err
 	}
+
 	var languagesMap []struct {
 		Language string
 		Version  string
@@ -46,16 +47,20 @@ func GetLanguages() ([]string, error) {
 		log.Println(err)
 		return nil, err
 	}
+
 	json.Unmarshal(body, &languagesMap)
 	languageSet := make(map[string]struct{})
 	for _, obj := range languagesMap {
 		languageSet[obj.Language] = struct{}{}
 	}
+
 	var languages []string
 	for lang := range languageSet {
 		languages = append(languages, lang)
 	}
+
 	sort.Strings(languages)
+
 	return languages, nil
 }
 
