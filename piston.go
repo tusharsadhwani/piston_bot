@@ -149,7 +149,7 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 	var data struct{ Run struct{ Output string } }
 	json.Unmarshal(body, &data)
 	return RunResponse{
-		Result:   ResultError,
+		Result:   ResultSuccess,
 		Language: lang,
 		Code:     code,
 		Output:   data.Run.Output,
