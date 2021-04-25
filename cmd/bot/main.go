@@ -54,8 +54,18 @@ func main() {
 	for update := range updates {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
-				response := piston.RunCode(&update, update.InlineQuery.Query)
-				formattedText := formatPistonResponse(response)
+				var response piston.RunResponse
+				var title string
+				var message string
+				request, err := piston.CreateRequest(update.InlineQuery.Query)
+				if err != nil {
+					title = "Bad Query"
+					message = INLINE_USAGE_MSG
+				} else {
+					response = piston.RunCode(&update, request)
+					title = response.Output
+					message = formatPistonResponse(request, response)
+				}
 
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
@@ -64,9 +74,9 @@ func main() {
 							Type:        "article",
 							ID:          uuid.NewString(),
 							Title:       "Output",
-							Description: response.Output,
+							Description: title,
 							InputMessageContent: tgbot.InputTextMessageContent{
-								Text:      formattedText,
+								Text:      message,
 								ParseMode: "html",
 							},
 						},
@@ -89,8 +99,14 @@ func main() {
 				msg.Text = USAGE_MSG
 
 			case "run":
-				response := piston.RunCode(&update, update.Message.CommandArguments())
-				msg.Text = formatPistonResponse(response)
+				request, err := piston.CreateRequest(update.Message.CommandArguments())
+				if err != nil {
+					msg.Text = USAGE_MSG
+					continue
+				}
+
+				response := piston.RunCode(&update, request)
+				msg.Text = formatPistonResponse(request, response)
 
 			case "langs":
 				languages, err := piston.GetLanguages()
@@ -98,6 +114,7 @@ func main() {
 					msg.Text = ERROR_STRING
 					break
 				}
+
 				textLines := make([]string, len(languages)+1)
 				textLines = append(textLines, "<b>Supported languages:</b>")
 				for _, lang := range languages {
@@ -136,26 +153,27 @@ func buildOutput(blocks map[string]string) string {
 	return strings.Join(formattedBlocks, "\n\n")
 }
 
-func formatPistonResponse(response piston.RunResponse) string {
+func formatPistonResponse(request piston.RunRequest, response piston.RunResponse) string {
 	switch response.Result {
-	case piston.ResultBadQuery:
-		return INLINE_USAGE_MSG
 	case piston.ResultUnknown:
 		return ERROR_STRING
+
 	case piston.ResultError:
 		return buildOutput(map[string]string{
-			BlockLanguage: response.Language,
-			BlockCode:     response.Code,
-			BlockStdin:    response.Stdin,
+			BlockLanguage: request.Language,
+			BlockCode:     request.Code,
+			BlockStdin:    request.Stdin,
 			BlockError:    response.Output,
 		})
+
 	case piston.ResultSuccess:
 		return buildOutput(map[string]string{
-			BlockLanguage: response.Language,
-			BlockCode:     response.Code,
-			BlockStdin:    response.Stdin,
+			BlockLanguage: request.Language,
+			BlockCode:     request.Code,
+			BlockStdin:    request.Stdin,
 			BlockOutput:   response.Output,
 		})
 	}
+
 	return ""
 }

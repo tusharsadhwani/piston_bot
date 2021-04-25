@@ -3,6 +3,7 @@ package piston_bot
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -15,10 +16,9 @@ import (
 )
 
 var (
-	ResultSuccess  = "success"
-	ResultError    = "error"
-	ResultBadQuery = "badquery"
-	ResultUnknown  = "unknown"
+	ResultSuccess = "success"
+	ResultError   = "error"
+	ResultUnknown = "unknown"
 )
 
 var authHeader []string
@@ -61,17 +61,13 @@ func GetLanguages() ([]string, error) {
 	return languages, nil
 }
 
-type RunResponse struct {
-	Result   string
+type RunRequest struct {
 	Language string
 	Code     string
 	Stdin    string
-	Output   string
 }
 
-var stdinRegex = regexp.MustCompile(`\s\/stdin\b`)
-
-func RunCode(update *tgbot.Update, text string) RunResponse {
+func CreateRequest(text string) (RunRequest, error) {
 	var lang, code string
 	for index, char := range text {
 		if char == ' ' || char == '\n' {
@@ -80,10 +76,7 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 		}
 	}
 	if code == "" {
-		return RunResponse{
-			Result: ResultBadQuery,
-			Output: "Bad Query",
-		}
+		return RunRequest{}, errors.New("Bad Query")
 	}
 
 	code = strings.TrimLeft(code, " \n")
@@ -97,11 +90,26 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 		}
 	}
 
+	return RunRequest{
+		Language: lang,
+		Code:     code,
+		Stdin:    stdin,
+	}, nil
+}
+
+type RunResponse struct {
+	Result string
+	Output string
+}
+
+var stdinRegex = regexp.MustCompile(`\s\/stdin\b`)
+
+func RunCode(update *tgbot.Update, request RunRequest) RunResponse {
 	jsonBody, err := json.Marshal(map[string]string{
-		"language": lang,
+		"language": request.Language,
 		"version":  "*",
-		"files":    code,
-		"stdin":    stdin,
+		"files":    request.Code,
+		"stdin":    request.Stdin,
 	})
 	if err != nil {
 		log.Println(err)
@@ -156,21 +164,17 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 		}
 
 		return RunResponse{
-			Result:   ResultError,
-			Language: lang,
-			Code:     code,
-			Stdin:    stdin,
-			Output:   errorStruct.Message,
+			Result: ResultError,
+
+			Output: errorStruct.Message,
 		}
 	}
 
 	var data struct{ Run struct{ Output string } }
 	json.Unmarshal(body, &data)
 	return RunResponse{
-		Result:   ResultSuccess,
-		Language: lang,
-		Code:     code,
-		Stdin:    stdin,
-		Output:   data.Run.Output,
+		Result: ResultSuccess,
+
+		Output: data.Run.Output,
 	}
 }
