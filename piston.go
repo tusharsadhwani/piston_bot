@@ -3,7 +3,6 @@ package piston_bot
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -90,7 +89,9 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 	stdinLoc := stdinRegex.FindStringIndex(code)
 	if stdinLoc != nil {
 		start, end := stdinLoc[0], stdinLoc[1]
-		code, stdin = code[:start], code[end+1:]
+		if end+1 < len(code) {
+			code, stdin = code[:start], code[end+1:]
+		}
 	}
 
 	jsonBody, err := json.Marshal(map[string]string{

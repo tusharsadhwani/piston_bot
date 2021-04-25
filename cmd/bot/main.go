@@ -29,29 +29,10 @@ var INLINE_USAGE_MSG = `
 </pre>
 `
 
-var OUTPUT_MSG = `
-<b>Language:</b>
-<pre>%s</pre>
-
-<b>Code:</b>
-<pre>%s</pre>
-
-<b>Output:</b>
-<pre>%s</pre>
+var ERROR_STRING = `
+Some error occured, try again later.
+If the error persists, report it to the admins in the bot's bio.
 `
-
-var ERROR_MSG = `
-<b>Language:</b>
-<pre>%s</pre>
-
-<b>Code:</b>
-<pre>%s</pre>
-
-<b>Error:</b>
-<pre>%s</pre>
-`
-
-var ERROR_STRING = "Some error occured, try again later."
 
 func main() {
 	piston.Init()
@@ -74,27 +55,8 @@ func main() {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
 				response := piston.RunCode(&update, update.InlineQuery.Query)
-				var formattedText string
-				switch response.Result {
-				case piston.ResultBadQuery:
-					formattedText = INLINE_USAGE_MSG
-				case piston.ResultUnknown:
-					formattedText = ERROR_STRING
-				case piston.ResultError:
-					formattedText = fmt.Sprintf(
-						ERROR_MSG,
-						html.EscapeString(response.Language),
-						html.EscapeString(response.Code),
-						html.EscapeString(response.Output),
-					)
-				case piston.ResultSuccess:
-					formattedText = fmt.Sprintf(
-						OUTPUT_MSG,
-						html.EscapeString(response.Language),
-						html.EscapeString(response.Code),
-						html.EscapeString(response.Output),
-					)
-				}
+				formattedText := formatPistonResponse(response)
+
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
 					Results: []interface{}{
@@ -128,26 +90,7 @@ func main() {
 
 			case "run":
 				response := piston.RunCode(&update, update.Message.CommandArguments())
-				switch response.Result {
-				case piston.ResultBadQuery:
-					msg.Text = USAGE_MSG
-				case piston.ResultUnknown:
-					msg.Text = ERROR_STRING
-				case piston.ResultError:
-					msg.Text = fmt.Sprintf(
-						ERROR_MSG,
-						html.EscapeString(response.Language),
-						html.EscapeString(response.Code),
-						html.EscapeString(response.Output),
-					)
-				case piston.ResultSuccess:
-					msg.Text = fmt.Sprintf(
-						OUTPUT_MSG,
-						html.EscapeString(response.Language),
-						html.EscapeString(response.Code),
-						html.EscapeString(response.Output),
-					)
-				}
+				msg.Text = formatPistonResponse(response)
 
 			case "langs":
 				languages, err := piston.GetLanguages()
@@ -162,7 +105,57 @@ func main() {
 				}
 				msg.Text = strings.Join(textLines, "\n")
 			}
+
 			bot.Send(msg)
 		}
 	}
+}
+
+var (
+	BlockLanguage = "Language"
+	BlockCode     = "Code"
+	BlockStdin    = "Stdin"
+	BlockOutput   = "Output"
+	BlockError    = "Error"
+)
+var blockNames = []string{BlockLanguage, BlockCode, BlockStdin, BlockOutput, BlockError}
+
+func buildOutput(blocks map[string]string) string {
+	var formattedBlocks []string
+	for _, blockName := range blockNames {
+		blockText := blocks[blockName]
+		if blockText != "" {
+			formattedName := fmt.Sprintf("<b>%s:</b>", blockName)
+			formattedText := fmt.Sprintf("<pre>%s</pre>", html.EscapeString(blockText))
+
+			formattedBlock := formattedName + "\n" + formattedText
+			formattedBlocks = append(formattedBlocks, formattedBlock)
+		}
+	}
+
+	return strings.Join(formattedBlocks, "\n\n")
+}
+
+func formatPistonResponse(response piston.RunResponse) string {
+	switch response.Result {
+	case piston.ResultBadQuery:
+		return INLINE_USAGE_MSG
+	case piston.ResultUnknown:
+		return ERROR_STRING
+	case piston.ResultError:
+		return buildOutput(map[string]string{
+			BlockLanguage: response.Language,
+			BlockCode:     response.Code,
+			BlockStdin:    response.Stdin,
+			BlockError:    response.Output,
+		})
+	case piston.ResultSuccess:
+		return buildOutput(map[string]string{
+			BlockLanguage: response.Language,
+			BlockCode:     response.Code,
+			BlockStdin:    response.Stdin,
+			BlockOutput:   response.Output,
+		})
+	}
+	return ""
 }
