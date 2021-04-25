@@ -88,7 +88,6 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 
 	var stdin string
 	stdinLoc := stdinRegex.FindStringIndex(code)
-	fmt.Println(stdinLoc)
 	if stdinLoc != nil {
 		start, end := stdinLoc[0], stdinLoc[1]
 		code, stdin = code[:start], code[end+1:]
