@@ -40,7 +40,13 @@ If the error persists, report it to the admins in the bot's bio.
 func main() {
 	piston.Init()
 
-	bot, err := tgbot.NewBotAPI(os.Getenv("TOKEN"))
+	token := os.Getenv("TOKEN")
+	if token == "" {
+		fmt.Println("Unable to read bot token. Make sure you export $TOKEN in the environment.")
+		os.Exit(1)
+	}
+
+	bot, err := tgbot.NewBotAPI(token)
 	if err != nil {
 		log.Panic(err)
 	}

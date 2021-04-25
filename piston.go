@@ -24,7 +24,11 @@ var (
 var authHeader []string
 
 func Init() {
-	authHeader = []string{os.Getenv("AUTH")}
+	authToken := os.Getenv("AUTH")
+	if authToken != "" {
+		authHeader = []string{authToken}
+		log.Printf("Auth Token picked up successfully")
+	}
 }
 
 func GetLanguages() ([]string, error) {
