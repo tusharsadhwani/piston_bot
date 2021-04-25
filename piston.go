@@ -99,7 +99,7 @@ func RunCode(update *tgbot.Update, text string) RunResponse {
 
 	jsonBody, err := json.Marshal(map[string]string{
 		"language": lang,
-		"version":  "",
+		"version":  "*",
 		"files":    code,
 		"stdin":    stdin,
 	})
