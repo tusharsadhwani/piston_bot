@@ -111,7 +111,7 @@ func main() {
 				request, err := piston.CreateRequest(update.Message.CommandArguments())
 				if err != nil {
 					msg.Text = USAGE_MSG
-					continue
+					break
 				}
 
 				response := piston.RunCode(&update, request)
