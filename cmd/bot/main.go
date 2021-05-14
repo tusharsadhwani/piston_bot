@@ -88,6 +88,7 @@ func main() {
 								Text:      message,
 								ParseMode: "html",
 							},
+							ReplyMarkup: forkButton(request),
 						},
 					},
 				})
@@ -116,6 +117,7 @@ func main() {
 
 				response := piston.RunCode(&update, request)
 				msg.Text = formatPistonResponse(request, response)
+				msg.ReplyMarkup = forkButton(request)
 
 			case "langs":
 				languages, err := piston.GetLanguages()
@@ -185,4 +187,19 @@ func formatPistonResponse(request piston.RunRequest, response piston.RunResponse
 	}
 
 	return ""
+}
+
+func forkButton(request piston.RunRequest) *tgbot.InlineKeyboardMarkup {
+	forkText := request.Language + "\n" + request.Code
+	inlineKeyboard := tgbot.InlineKeyboardMarkup{
+		InlineKeyboard: [][]tgbot.InlineKeyboardButton{
+			{
+				tgbot.InlineKeyboardButton{
+					Text:                         "Fork",
+					SwitchInlineQueryCurrentChat: &forkText,
+				},
+			},
+		},
+	}
+	return &inlineKeyboard
 }
