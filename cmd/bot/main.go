@@ -63,18 +63,7 @@ func main() {
 	for update := range updates {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
-				var response piston.RunResponse
-				var title string
-				var message string
-				request, err := piston.CreateRequest(update.InlineQuery.Query)
-				if err != nil {
-					title = "Bad Query"
-					message = INLINE_USAGE_MSG
-				} else {
-					response = piston.RunCode(&update, request)
-					title = response.Output
-					message = formatPistonResponse(request, response)
-				}
+				inlineQueryData := performInlineQuery(update.InlineQuery.Query)
 
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
@@ -82,13 +71,13 @@ func main() {
 						tgbot.InlineQueryResultArticle{
 							Type:        "article",
 							ID:          uuid.NewString(),
-							Title:       "Output",
-							Description: title,
+							Title:       inlineQueryData.title,
+							Description: inlineQueryData.description,
 							InputMessageContent: tgbot.InputTextMessageContent{
-								Text:      message,
+								Text:      inlineQueryData.message,
 								ParseMode: "html",
 							},
-							ReplyMarkup: forkButton(request),
+							ReplyMarkup: inlineQueryData.forkButton,
 						},
 					},
 				})
@@ -115,9 +104,11 @@ func main() {
 					break
 				}
 
-				response := piston.RunCode(&update, request)
+				response := piston.RunCode(request)
 				msg.Text = formatPistonResponse(request, response)
-				msg.ReplyMarkup = forkButton(request)
+				if response.Result == piston.ResultSuccess {
+					msg.ReplyMarkup = forkButton(request)
+				}
 
 			case "langs":
 				languages, err := piston.GetLanguages()
@@ -202,4 +193,46 @@ func forkButton(request piston.RunRequest) *tgbot.InlineKeyboardMarkup {
 		},
 	}
 	return &inlineKeyboard
+}
+
+type InlineQueryData struct {
+	title       string
+	description string
+	message     string
+	forkButton  *tgbot.InlineKeyboardMarkup
+}
+
+func performInlineQuery(query string) InlineQueryData {
+	request, err := piston.CreateRequest(query)
+	if err != nil {
+		return InlineQueryData{
+			title:       "Error",
+			description: "Bad Query",
+			message:     INLINE_USAGE_MSG,
+		}
+	}
+
+	response := piston.RunCode(request)
+	message := formatPistonResponse(request, response)
+	switch response.Result {
+	case piston.ResultSuccess:
+		return InlineQueryData{
+			title:       "Output",
+			description: response.Output,
+			message:     message,
+			forkButton:  forkButton(request),
+		}
+	case piston.ResultError:
+		return InlineQueryData{
+			title:       "Error",
+			description: response.Output,
+			message:     message,
+		}
+	}
+
+	return InlineQueryData{
+		title:       "Error",
+		description: "Unknown error",
+		message:     message,
+	}
 }

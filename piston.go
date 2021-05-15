@@ -11,8 +11,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-
-	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 var authHeader []string
@@ -113,7 +111,7 @@ var (
 
 var stdinRegex = regexp.MustCompile(`\s\/stdin\b`)
 
-func RunCode(update *tgbot.Update, request RunRequest) RunResponse {
+func RunCode(request RunRequest) RunResponse {
 	jsonBody, err := json.Marshal(map[string]string{
 		"language": request.Language,
 		"version":  "*",
