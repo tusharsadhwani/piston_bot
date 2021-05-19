@@ -10,6 +10,8 @@ import (
 	tgbot "github.com/go-telegram-bot-api/telegram-bot-api"
 	uuid "github.com/google/uuid"
 	piston "github.com/tusharsadhwani/piston_bot"
+	"gorm.io/driver/sqlite"
+	"gorm.io/gorm"
 )
 
 var USAGE_MSG = `
@@ -37,7 +39,29 @@ Some error occured, try again later.
 If the error persists, report it to the admins in the bot's bio.
 `
 
+var STATS_MSG = `
+<b>Stats for the bot:</b>
+
+- Total messages sent: %d
+- Total unique chats messaged in: %d
+- Total unique users: %d
+`
+
+type Stat struct {
+	gorm.Model
+	Chatid int64
+	Userid int
+}
+
 func main() {
+	// Setup DB
+	db, err := gorm.Open(sqlite.Open("piston.db"), &gorm.Config{})
+	if err != nil {
+		panic("failed to connect database")
+	}
+	db.AutoMigrate(&Stat{})
+
+	// Setup Piston
 	piston.Init()
 
 	token := os.Getenv("TOKEN")
@@ -81,6 +105,11 @@ func main() {
 						},
 					},
 				})
+
+				db.Create(&Stat{
+					Chatid: int64(update.InlineQuery.From.ID),
+					Userid: update.InlineQuery.From.ID,
+				})
 			}
 		}
 
@@ -96,6 +125,16 @@ func main() {
 			switch update.Message.Command() {
 			case "help":
 				msg.Text = USAGE_MSG
+
+			case "stats":
+				var messageCount int64
+				db.Model(&Stat{}).Count(&messageCount)
+				var chatCount int64
+				db.Model(&Stat{}).Distinct("chatid").Count(&chatCount)
+				var userCount int64
+				db.Model(&Stat{}).Distinct("userid").Count(&userCount)
+
+				msg.Text = fmt.Sprintf(STATS_MSG, messageCount, chatCount, userCount)
 
 			case "run":
 				request, err := piston.CreateRequest(update.Message.CommandArguments())
@@ -126,6 +165,10 @@ func main() {
 			}
 
 			bot.Send(msg)
+			db.Create(&Stat{
+				Chatid: update.Message.Chat.ID,
+				Userid: update.Message.From.ID,
+			})
 		}
 	}
 }
