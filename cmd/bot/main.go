@@ -33,6 +33,7 @@ var INLINE_USAGE_MSG = `
 /stdin [input text] (optional)
 ...</pre>
 `
+var INLINE_USAGE_MSG_PLAINTEXT = `Usage: @iruncode_bot [language] [code]`
 
 var ERROR_STRING = `
 Some error occured, try again later.
@@ -87,7 +88,7 @@ func main() {
 	for update := range updates {
 		if update.InlineQuery != nil {
 			if update.InlineQuery.Query != "" {
-				inlineQueryData := performInlineQuery(update.InlineQuery.Query)
+				inlineQueryData := runInlineQuery(update.InlineQuery.Query)
 
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
 					InlineQueryID: update.InlineQuery.ID,
@@ -245,12 +246,12 @@ type InlineQueryData struct {
 	forkButton  *tgbot.InlineKeyboardMarkup
 }
 
-func performInlineQuery(query string) InlineQueryData {
+func runInlineQuery(query string) InlineQueryData {
 	request, err := piston.CreateRequest(query)
 	if err != nil {
 		return InlineQueryData{
-			title:       "Error",
-			description: "Bad Query",
+			title:       "Bad Query",
+			description: INLINE_USAGE_MSG_PLAINTEXT,
 			message:     INLINE_USAGE_MSG,
 		}
 	}
