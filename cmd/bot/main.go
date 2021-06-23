@@ -87,7 +87,24 @@ func main() {
 
 	for update := range updates {
 		if update.InlineQuery != nil {
-			if update.InlineQuery.Query != "" {
+			if update.InlineQuery.Query == "" {
+				bot.AnswerInlineQuery(tgbot.InlineConfig{
+					InlineQueryID: update.InlineQuery.ID,
+					Results: []interface{}{
+						tgbot.InlineQueryResultArticle{
+							Type:        "article",
+							ID:          uuid.NewString(),
+							Title:       "Usage",
+							Description: INLINE_USAGE_MSG_PLAINTEXT,
+							InputMessageContent: tgbot.InputTextMessageContent{
+								Text:      INLINE_USAGE_MSG,
+								ParseMode: "html",
+							},
+						},
+					},
+				})
+
+			} else {
 				inlineQueryData := runInlineQuery(update.InlineQuery.Query)
 
 				bot.AnswerInlineQuery(tgbot.InlineConfig{
