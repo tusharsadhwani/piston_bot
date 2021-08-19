@@ -141,7 +141,7 @@ func RunCode(request RunRequest) RunResponse {
 	}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
-		if resp.Body != nil {
+		if resp != nil && resp.Body != nil {
 			body, err := ioutil.ReadAll(resp.Body)
 			log.Println(err)
 			log.Printf("%s\n", body)
