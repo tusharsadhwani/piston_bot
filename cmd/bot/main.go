@@ -163,7 +163,7 @@ func main() {
 
 				response := piston.RunCode(request)
 				msg.Text = formatPistonResponse(request, response)
-				if response.Result == piston.ResultSuccess {
+				if response.Result != piston.ResultUnknown {
 					msg.ReplyMarkup = forkButton(request)
 				}
 
@@ -288,6 +288,7 @@ func runInlineQuery(query string) InlineQueryData {
 			title:       "Error",
 			description: response.Output,
 			message:     message,
+			forkButton:  forkButton(request),
 		}
 	}
 
