@@ -99,8 +99,9 @@ func CreateRequest(text string) (RunRequest, error) {
 }
 
 type RunResponse struct {
-	Result string
-	Output string
+	Result         string
+	Output         string
+	CompilerOutput string
 }
 
 var (
@@ -172,11 +173,15 @@ func RunCode(request RunRequest) RunResponse {
 		}
 	}
 
-	var data struct{ Run struct{ Output string } }
+	var data struct {
+		Run     struct{ Output string }
+		Compile struct{ Output string }
+	}
 	json.Unmarshal(body, &data)
 
 	return RunResponse{
-		Result: ResultSuccess,
-		Output: data.Run.Output,
+		Result:         ResultSuccess,
+		Output:         data.Run.Output,
+		CompilerOutput: data.Compile.Output,
 	}
 }

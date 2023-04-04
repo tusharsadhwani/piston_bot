@@ -192,13 +192,14 @@ func main() {
 }
 
 var (
-	BlockLanguage = "Language"
-	BlockCode     = "Code"
-	BlockStdin    = "Stdin"
-	BlockOutput   = "Output"
-	BlockError    = "Error"
+	BlockLanguage       = "Language"
+	BlockCode           = "Code"
+	BlockStdin          = "Stdin"
+	BlockCompilerOutput = "Compiler Output"
+	BlockOutput         = "Output"
+	BlockError          = "Error"
 )
-var blockNames = []string{BlockLanguage, BlockCode, BlockStdin, BlockOutput, BlockError}
+var blockNames = []string{BlockLanguage, BlockCode, BlockStdin, BlockCompilerOutput, BlockOutput, BlockError}
 
 func buildOutput(blocks map[string]string) string {
 	var formattedBlocks []string
@@ -231,10 +232,11 @@ func formatPistonResponse(request piston.RunRequest, response piston.RunResponse
 
 	case piston.ResultSuccess:
 		return buildOutput(map[string]string{
-			BlockLanguage: request.Language,
-			BlockCode:     request.Code,
-			BlockStdin:    request.Stdin,
-			BlockOutput:   response.Output,
+			BlockLanguage:       request.Language,
+			BlockCode:           request.Code,
+			BlockStdin:          request.Stdin,
+			BlockCompilerOutput: response.CompilerOutput,
+			BlockOutput:         response.Output,
 		})
 	}
 
