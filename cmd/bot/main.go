@@ -201,13 +201,22 @@ var (
 )
 var blockNames = []string{BlockLanguage, BlockCode, BlockStdin, BlockCompilerOutput, BlockOutput, BlockError}
 
-func buildOutput(blocks map[string]string) string {
+func buildOutput(blocks map[string]string, language string) string {
 	var formattedBlocks []string
 	for _, blockName := range blockNames {
 		blockText := blocks[blockName]
 		if blockText != "" {
 			formattedName := fmt.Sprintf("<b>%s:</b>", blockName)
-			formattedText := fmt.Sprintf("<pre>%s</pre>", html.EscapeString(blockText))
+			var formattedText string
+			if blockName == BlockCode {
+				formattedText = fmt.Sprintf(
+					"<pre><code class=\"language-%s\">%s</code></pre>",
+					html.EscapeString(language),
+					html.EscapeString(blockText),
+				)
+			} else {
+				formattedText = fmt.Sprintf("<pre>%s</pre>", html.EscapeString(blockText))
+			}
 
 			formattedBlock := formattedName + "\n" + formattedText
 			formattedBlocks = append(formattedBlocks, formattedBlock)
@@ -223,21 +232,27 @@ func formatPistonResponse(request piston.RunRequest, response piston.RunResponse
 		return ERROR_STRING
 
 	case piston.ResultError:
-		return buildOutput(map[string]string{
-			BlockLanguage: request.Language,
-			BlockCode:     request.Code,
-			BlockStdin:    request.Stdin,
-			BlockError:    response.Output,
-		})
+		return buildOutput(
+			map[string]string{
+				BlockLanguage: request.Language,
+				BlockCode:     request.Code,
+				BlockStdin:    request.Stdin,
+				BlockError:    response.Output,
+			},
+			request.Language,
+		)
 
 	case piston.ResultSuccess:
-		return buildOutput(map[string]string{
-			BlockLanguage:       request.Language,
-			BlockCode:           request.Code,
-			BlockStdin:          request.Stdin,
-			BlockCompilerOutput: response.CompilerOutput,
-			BlockOutput:         response.Output,
-		})
+		return buildOutput(
+			map[string]string{
+				BlockLanguage:       request.Language,
+				BlockCode:           request.Code,
+				BlockStdin:          request.Stdin,
+				BlockCompilerOutput: response.CompilerOutput,
+				BlockOutput:         response.Output,
+			},
+			request.Language,
+		)
 	}
 
 	return ""
